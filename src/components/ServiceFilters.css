@@ -1,0 +1,12 @@
+﻿.filters-box {
+  padding: 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.filters-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}

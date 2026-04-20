@@ -1,0 +1,33 @@
+﻿:root {
+  --crumb-active: #212529;
+  --crumb-muted: #6c757d;
+}
+
+.breadcrumbs {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 16px 0;
+  margin: 0;
+}
+
+.breadcrumbs li,
+.breadcrumbs a {
+  color: var(--crumb-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbs a:hover {
+  color: var(--crumb-active);
+}
+
+.breadcrumbs li:last-child {
+  color: var(--crumb-active);
+  font-weight: 600;
+}
+
+.breadcrumbs .slash {
+  cursor: default;
+}
