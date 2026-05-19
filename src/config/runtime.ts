@@ -17,6 +17,7 @@ const imageBackendUrlRaw = import.meta.env.VITE_IMAGE_BACKEND_URL ?? backendUrlR
 
 const backendUrl = trimTrailingSlash(backendUrlRaw);
 const imageBackendUrl = trimTrailingSlash(imageBackendUrlRaw);
+const apiRootUrl = `${backendUrl}/api`;
 
 const toAbsoluteByBase = (base: string, path: string): string => {
   if (!path.startsWith('/')) return path;
@@ -26,10 +27,11 @@ const toAbsoluteByBase = (base: string, path: string): string => {
 export const appRuntime = {
   deployTarget,
   backendUrl,
+  apiRootUrl,
   imageBackendUrl,
   isTauriGuest: deployTarget === 'tauri',
   usesDirectBackend: deployTarget === 'tauri' || deployTarget === 'pages',
-  apiBaseUrl: deployTarget === 'tauri' || deployTarget === 'pages' ? backendUrl : '/api',
+  apiBaseUrl: deployTarget === 'tauri' || deployTarget === 'pages' ? apiRootUrl : '/api',
 };
 
 export const resolveMediaUrl = (rawUrl: string): string => {
