@@ -25,6 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Tauri build artifacts
+# Tauri artifacts
 dev-dist/
 src-tauri/target/

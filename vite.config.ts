@@ -4,11 +4,16 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig, loadEnv } from 'vite';
 
 const trimSlash = (value: string): string => value.replace(/\/+$/, '');
+const getTargetFromMode = (mode: string): 'web' | 'pages' | 'tauri' => {
+  if (mode === 'pages') return 'pages';
+  if (mode === 'tauri') return 'tauri';
+  return 'web';
+};
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
-  const deployTarget = env.VITE_DEPLOY_TARGET || 'web';
+  const deployTarget = env.VITE_DEPLOY_TARGET || env['\uFEFFVITE_DEPLOY_TARGET'] || getTargetFromMode(mode);
   const repoName = env.VITE_GH_REPO || 'oxygenation_index_spa';
   const backendUrl = trimSlash(env.VITE_BACKEND_URL || 'http://localhost:8080');
   const imageBackendUrl = trimSlash(env.VITE_IMAGE_BACKEND_URL || 'http://localhost:9000');
