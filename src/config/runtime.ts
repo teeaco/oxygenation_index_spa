@@ -28,7 +28,8 @@ export const appRuntime = {
   backendUrl,
   imageBackendUrl,
   isTauriGuest: deployTarget === 'tauri',
-  apiBaseUrl: deployTarget === 'tauri' ? backendUrl : '/api',
+  usesDirectBackend: deployTarget === 'tauri' || deployTarget === 'pages',
+  apiBaseUrl: deployTarget === 'tauri' || deployTarget === 'pages' ? backendUrl : '/api',
 };
 
 export const resolveMediaUrl = (rawUrl: string): string => {
@@ -37,7 +38,7 @@ export const resolveMediaUrl = (rawUrl: string): string => {
     return rawUrl;
   }
 
-  if (!appRuntime.isTauriGuest) {
+  if (!appRuntime.usesDirectBackend) {
     return rawUrl;
   }
 
