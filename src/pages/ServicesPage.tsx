@@ -1,98 +1,150 @@
+﻿import type { ChangeEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { Spinner } from 'react-bootstrap';
+import { Alert, Spinner } from 'react-bootstrap';
 import { ServicesApi } from '../api/servicesApi';
 import { BreadCrumbs } from '../components/BreadCrumbs';
 import { ServiceCard } from '../components/ServiceCard';
 import { ServiceFilters } from '../components/ServiceFilters';
+import { appRuntime } from '../config/runtime';
+import { useClipEmbeddings } from '../hooks/useClipEmbeddings';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { addServiceToDraftThunk, loadDraftSummaryThunk } from '../store/slices/draftSlice';
+import { applyOxygenationIndex, setOxygenationInput } from '../store/slices/servicesFiltersSlice';
 import type { Service } from '../types/service';
 
-const matchesOxygenationIndex = (service: Service, rawIndex: string): boolean => {
-  if (!rawIndex.trim()) return true;
+const normalizeIndexInput = (value: string): string => {
+  const source = value.trim().replace(',', '.');
+  if (!source) return '';
 
-  const index = Number(rawIndex);
-  if (!Number.isFinite(index)) return true;
-
-  const minOk = service.indexMin === null || index >= service.indexMin;
-  const maxOk = service.indexMax === null || index <= service.indexMax;
-
-  return minOk && maxOk;
+  const numeric = Number(source);
+  return Number.isFinite(numeric) ? String(numeric) : '';
 };
 
 export const ServicesPage = () => {
+  const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { actionLoading: addToDraftLoading } = useAppSelector((state) => state.draft);
+  const { oxygenationInput, appliedOxygenationIndex } = useAppSelector((state) => state.servicesFilters);
+  const canEditDraft = isAuthenticated && !appRuntime.isTauriGuest;
+
   const [services, setServices] = useState<Service[]>([]);
-  const [searchInput, setSearchInput] = useState('');
-  const [appliedIndex, setAppliedIndex] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const {
+    clipProgress,
+    clipInitializing,
+    clipError,
+    hasImageQuery,
+    imageRankedServices,
+    imageScoresById,
+    searchByImage,
+    resetImageSearch,
+  } = useClipEmbeddings(services);
+
+  const loadServices = async (oxygenationIndex?: string): Promise<void> => {
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const items = await ServicesApi.getServices({
+        oxygenationIndex,
+      });
+      setServices(items);
+    } catch {
+      setErrorMessage('Не удалось загрузить услуги.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
+    void loadServices(appliedOxygenationIndex || undefined);
+    if (isAuthenticated) {
+      void dispatch(loadDraftSummaryThunk());
+    }
+  }, [appliedOxygenationIndex, dispatch, isAuthenticated]);
 
-    const loadServices = async () => {
-      setLoading(true);
-      const items = await ServicesApi.getServices();
+  const displayedServices = useMemo(
+    () => (hasImageQuery ? imageRankedServices.map((item) => item.service) : services),
+    [hasImageQuery, imageRankedServices, services],
+  );
 
-      if (isMounted) {
-        setServices(items);
-        setLoading(false);
-      }
-    };
+  const handleFilterSubmit = () => {
+    const normalizedIndex = normalizeIndexInput(oxygenationInput);
+    dispatch(applyOxygenationIndex(normalizedIndex));
+    void loadServices(normalizedIndex);
+  };
 
-    loadServices();
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    searchByImage(file);
+  };
 
-  const filteredServices = useMemo(() => {
-    return services.filter((service) => matchesOxygenationIndex(service, appliedIndex));
-  }, [services, appliedIndex]);
+  const handleAddService = async (serviceId: number) => {
+    await dispatch(addServiceToDraftThunk(serviceId));
+    await dispatch(loadDraftSummaryThunk());
+  };
 
   return (
     <>
-      <div className='top-tools'>
-        <button
-          type='button'
-          className='cart-icon-link cart-icon-link-disabled'
-          aria-label='Корзина пуста'
-          disabled
-        >
-          <span className='cart-icon' aria-hidden='true'>
-            <svg viewBox='0 0 24 24'>
-              <path
-                d='M3 5h2l1.1 8.2a2 2 0 0 0 2 1.8h8.7a2 2 0 0 0 2-1.6L20 8H7'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='1.8'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-              <circle cx='10' cy='19' r='1.5' fill='currentColor' />
-              <circle cx='17' cy='19' r='1.5' fill='currentColor' />
-            </svg>
-          </span>
-          <span className='cart-badge'>0</span>
-        </button>
-      </div>
-
       <ServiceFilters
-        oxygenationIndex={searchInput}
-        onOxygenationIndexChange={setSearchInput}
-        onSubmit={() => setAppliedIndex(searchInput)}
+        oxygenationIndex={oxygenationInput}
+        onOxygenationIndexChange={(value) => dispatch(setOxygenationInput(value))}
+        onSubmit={handleFilterSubmit}
       />
 
-      <main className='container'>
-        <BreadCrumbs crumbs={[{ label: 'Услуги' }]} />
-        <h1 className='page-title'>Степени оксигенации</h1>
+      <section className='clip-search-panel'>
+        <h2 className='clip-search-title'>Мультимодальный поиск по изображению</h2>
+        <p className='clip-search-caption'>
+          Загрузите изображение, чтобы отсортировать услуги по мультимодальной релевантности CLIP.
+        </p>
 
-        {loading ? (
+        <div className='clip-search-controls'>
+          <input type='file' accept='image/*' onChange={handleImageChange} className='clip-file-input' />
+          <button type='button' className='search-btn clip-reset-btn' onClick={resetImageSearch} disabled={!hasImageQuery}>
+            Сбросить
+          </button>
+        </div>
+
+        <p className='search-request-meta'>
+          Текущий фильтр PaO2/FiO2: <code>{appliedOxygenationIndex || 'не задан'}</code>
+        </p>
+        {!canEditDraft ? <p className='search-request-meta'>Режим гостя: доступен просмотр и фильтрация услуг.</p> : null}
+
+        {clipInitializing ? <p className='clip-status'>Загрузка CLIP-модели: {clipProgress}%</p> : null}
+        {hasImageQuery ? <p className='clip-status'>Результаты отсортированы по мультимодальной релевантности.</p> : null}
+        {clipError ? <p className='clip-error'>CLIP недоступен: {clipError}</p> : null}
+      </section>
+
+      <main className='container'>
+        <BreadCrumbs crumbs={[]} />
+        <h1 className='page-title'>Расчет индекса оксигенации</h1>
+
+        {errorMessage ? (
+          <Alert variant='warning'>{errorMessage}</Alert>
+        ) : loading ? (
           <div className='loading-block'>
             <Spinner animation='border' />
           </div>
         ) : (
           <div className='cards-grid'>
-            {filteredServices.length ? (
-              filteredServices.map((service) => <ServiceCard key={service.id} service={service} requestId={0} />)
+            {displayedServices.length ? (
+              displayedServices.map((service) => (
+                <div key={service.id} className='search-card-wrapper'>
+                  <ServiceCard
+                    service={service}
+                    showAddButton={canEditDraft}
+                    addLoading={addToDraftLoading}
+                    onAdd={handleAddService}
+                  />
+                  {hasImageQuery ? (
+                    <p className='clip-score'>CLIP релевантность: {(imageScoresById[service.id] ?? 0).toFixed(3)}</p>
+                  ) : null}
+                </div>
+              ))
             ) : (
               <p className='empty-state'>По вашему запросу ничего не найдено.</p>
             )}

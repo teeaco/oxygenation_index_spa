@@ -6,32 +6,50 @@ import type { Service } from '../types/service';
 
 interface ServiceCardProps {
   service: Service;
-  requestId: number;
+  showAddButton?: boolean;
+  addLoading?: boolean;
+  onAdd?: (serviceId: number) => void;
 }
 
-export const ServiceCard = ({ service, requestId }: ServiceCardProps) => {
+export const ServiceCard = ({ service, showAddButton = false, addLoading = false, onAdd }: ServiceCardProps) => {
   const handleImageError = (event: SyntheticEvent<HTMLImageElement>) => {
     event.currentTarget.src = defaultImage;
   };
 
+  const handleAddClick = (event: SyntheticEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onAdd?.(service.id);
+  };
+
+  const shortDescription = service.shortDescription || service.shortDescriptionEn || 'Описание отсутствует.';
+
   return (
-    <Link
-      to={`${ROUTES.SERVICES}/${service.id}`}
+    <article
       className='card'
       data-service-id={service.id}
-      data-request-id={requestId}
       data-image-url={service.imageUrl}
       data-video-url={service.videoUrl}
     >
-      <div className='card-image'>
-        <img src={service.imageUrl || defaultImage} alt={service.name} onError={handleImageError} />
-      </div>
+      <Link to={`${ROUTES.SERVICES}/${service.id}`} className='card-link-area'>
+        <div className='card-image'>
+          <img src={service.imageUrl || defaultImage} alt={service.name} onError={handleImageError} />
+        </div>
 
-      <div className='card-content'>
-        <h3 className='card-title'>{service.name}</h3>
-        <p className='card-index'>{service.benchmark}</p>
-        <p className='card-desc'>{service.shortDescription}</p>
-      </div>
-    </Link>
+        <div className='card-content'>
+          <h3 className='card-title'>{service.name}</h3>
+          <p className='card-index'>{service.benchmark}</p>
+          <p className='card-desc'>{shortDescription}</p>
+        </div>
+      </Link>
+
+      {showAddButton ? (
+        <div className='card-actions'>
+          <button type='button' className='search-btn card-add-btn' onClick={handleAddClick} disabled={addLoading}>
+            {addLoading ? 'Добавление...' : 'Добавить в заявку'}
+          </button>
+        </div>
+      ) : null}
+    </article>
   );
 };

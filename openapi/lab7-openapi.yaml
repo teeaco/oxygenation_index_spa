@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: RIP Oxygenation Request API
+  version: 7.0.0
+servers:
+  - url: /api
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    CartResponse:
+      type: object
+      properties:
+        request_id:
+          type: integer
+          nullable: true
+        items_count:
+          type: integer
+        has_draft:
+          type: boolean
+      required:
+        - items_count
+        - has_draft
+    AddServiceToDraftRequest:
+      type: object
+      properties:
+        service_id:
+          type: integer
+      required:
+        - service_id
+    AddServiceToDraftResponse:
+      type: object
+      properties:
+        request_id:
+          type: integer
+        cart:
+          $ref: '#/components/schemas/CartResponse'
+    UpdateRequestServiceRequest:
+      type: object
+      properties:
+        doctor_comment:
+          type: string
+    UpdateRequestRequest:
+      type: object
+      properties:
+        patient_name:
+          type: string
+        blood_value_pao2:
+          type: number
+        fio2_value:
+          type: number
+    ReviewRequestRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum:
+            - complete
+            - reject
+      required:
+        - action
+    RequestServiceResponse:
+      type: object
+      properties:
+        request_id:
+          type: integer
+        service_id:
+          type: integer
+        service_name:
+          type: string
+        image_url:
+          type: string
+        video_url:
+          type: string
+        benchmark:
+          type: string
+        doctor_comment:
+          type: string
+        result_coefficient:
+          type: number
+          nullable: true
+    RequestResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        formed_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        creator_login:
+          type: string
+        moderator_login:
+          type: string
+        patient_name:
+          type: string
+        blood_value_pao2:
+          type: number
+          nullable: true
+        fio2_value:
+          type: number
+          nullable: true
+        primary_service:
+          type: string
+        result_coefficient:
+          type: number
+          nullable: true
+        result:
+          type: string
+        results_count:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestServiceResponse'
+    RequestListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestResponse'
+paths:
+  /oxygenation_request/cart:
+    get:
+      tags:
+        - oxygenationRequest
+      operationId: getCart
+      summary: Get cart summary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+  /request-services:
+    post:
+      tags:
+        - requestServices
+      operationId: addServiceToDraft
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddServiceToDraftRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddServiceToDraftResponse'
+  /request-services/{requestID}/{serviceID}:
+    put:
+      tags:
+        - requestServices
+      operationId: updateRequestService
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: requestID
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: serviceID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequestServiceRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestServiceResponse'
+    delete:
+      tags:
+        - requestServices
+      operationId: deleteRequestService
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: requestID
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: serviceID
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+  /oxygenation_request:
+    get:
+      tags:
+        - oxygenationRequest
+      operationId: listRequests
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - formed
+              - completed
+              - rejected
+        - in: query
+          name: formed_from
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: formed_to
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestListResponse'
+  /oxygenation_request/{id}:
+    get:
+      tags:
+        - oxygenationRequest
+      operationId: getRequestById
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestResponse'
+    put:
+      tags:
+        - oxygenationRequest
+      operationId: updateRequest
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequestRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestResponse'
+    delete:
+      tags:
+        - oxygenationRequest
+      operationId: deleteRequest
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: No Content
+  /oxygenation_request/{id}/form:
+    put:
+      tags:
+        - oxygenationRequest
+      operationId: formRequest
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestResponse'
+  /oxygenation_request/{id}/review:
+    put:
+      tags:
+        - oxygenationRequest
+      operationId: reviewRequest
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewRequestRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestResponse'

@@ -15,7 +15,7 @@ export const BreadCrumbs = ({ crumbs }: BreadCrumbsProps) => {
   return (
     <ul className='breadcrumbs'>
       <li>
-        <Link to={ROUTES.HOME}>Главная</Link>
+        <Link to={ROUTES.SERVICES}>Услуги</Link>
       </li>
       {crumbs.map((crumb, index) => (
         <Fragment key={`${crumb.label}-${index}`}>
@@ -24,7 +24,7 @@ export const BreadCrumbs = ({ crumbs }: BreadCrumbsProps) => {
             <li>{crumb.label}</li>
           ) : (
             <li>
-              <Link to={crumb.path ?? ROUTES.HOME}>{crumb.label}</Link>
+              <Link to={crumb.path ?? ROUTES.SERVICES}>{crumb.label}</Link>
             </li>
           )}
         </Fragment>

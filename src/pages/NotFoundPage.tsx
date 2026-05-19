@@ -7,8 +7,8 @@ export const NotFoundPage = () => {
       <h1 className='page-title'>404</h1>
       <section className='home-panel'>
         <p>Страница не найдена.</p>
-        <Link to={ROUTES.HOME} className='btn-primary-link'>
-          Вернуться на главную
+        <Link to={ROUTES.SERVICES} className='btn-primary-link'>
+          Вернуться к услугам
         </Link>
       </section>
     </main>

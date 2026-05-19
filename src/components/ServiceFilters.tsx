@@ -1,4 +1,4 @@
-import { Form } from 'react-bootstrap';
+﻿import { Form } from 'react-bootstrap';
 
 interface ServiceFiltersProps {
   oxygenationIndex: string;
@@ -6,11 +6,7 @@ interface ServiceFiltersProps {
   onSubmit: () => void;
 }
 
-export const ServiceFilters = ({
-  oxygenationIndex,
-  onOxygenationIndexChange,
-  onSubmit,
-}: ServiceFiltersProps) => {
+export const ServiceFilters = ({ oxygenationIndex, onOxygenationIndexChange, onSubmit }: ServiceFiltersProps) => {
   return (
     <section className='search-container'>
       <Form
@@ -29,7 +25,7 @@ export const ServiceFilters = ({
             onChange={(event) => onOxygenationIndexChange(event.target.value)}
           />
           <button type='submit' className='search-btn'>
-            Искать
+            Найти
           </button>
         </div>
       </Form>

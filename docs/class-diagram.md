@@ -1,79 +1,56 @@
-﻿# Диаграмма классов (Frontend + Backend домены)
+# Class Diagram (актуальная версия)
 
 ```mermaid
 classDiagram
   direction LR
 
-  class HomePage {
-    +render()
-  }
-
   class ServicesPage {
     +loadServices()
-    +applyFilters()
+    +dispatch(applyOxygenationIndex)
   }
 
-  class ServiceDetailsPage {
-    +loadService(id)
-    +render()
+  class RequestsPage {
+    +dispatch(fetchRequestsThunk)
+    +shortPolling(5000ms)
   }
 
   class RequestPage {
-    +loadRequest(id)
-    +renderRows()
+    +updateRequestThunk()
+    +updateRequestServiceThunk()
   }
 
-  class AppNavbar {
-    +render()
+  class ServicesFiltersSlice {
+    +oxygenationInput: string
+    +appliedOxygenationIndex: string
   }
 
-  class BreadCrumbs {
-    +render(crumbs)
+  class RequestsApiGenerated {
+    +listRequests()
+    +getRequestById()
+    +updateRequest()
+    +formRequest()
+    +reviewRequest()
+    +addServiceToDraft()
+    +updateRequestService()
+    +deleteRequestService()
   }
 
-  class ServiceFilters {
-    +onChange(filters)
+  class AuthApi {
+    +register()
+    +login()
+    +logout()
   }
 
-  class ServiceCard {
-    +render(service)
+  class AxiosHttp {
+    +axios.create()
+    +Authorization interceptor
   }
 
-  class ServicesApiClient {
-    +getServices() Service[]
-    +getServiceById(id) Service
-    +getRequestById(id) Request
-  }
-
-  class ServiceController {
-    +listServices()
-    +getService(id)
-    +getRequest(id)
-  }
-
-  class ServiceDomain {
-    +search(filters)
-    +findById(id)
-  }
-
-  HomePage --> AppNavbar
-  ServicesPage --> AppNavbar
-  ServiceDetailsPage --> AppNavbar
-  RequestPage --> AppNavbar
-
-  ServicesPage --> BreadCrumbs
-  ServiceDetailsPage --> BreadCrumbs
-  RequestPage --> BreadCrumbs
-
-  ServicesPage --> ServiceFilters
-  ServicesPage --> ServiceCard
-
-  ServicesPage ..> ServicesApiClient : depends on
-  ServiceDetailsPage ..> ServicesApiClient : depends on
-  RequestPage ..> ServicesApiClient : depends on
-
-  ServicesApiClient ..> ServiceController : HTTP
-  ServiceController --> ServiceDomain
+  ServicesPage --> ServicesFiltersSlice
+  RequestsPage --> RequestsApiGenerated
+  RequestPage --> RequestsApiGenerated
+  AuthApi --> AxiosHttp
+  RequestsApiGenerated --> AxiosHttp
 ```
 
-Диаграмма без моделей и БД, с фокусом на домены и методы.
+Подробные диаграммы deployment/state/use-case: `docs/lab8-diagrams.md`.

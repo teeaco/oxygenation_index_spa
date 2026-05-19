@@ -1,13 +1,10 @@
-﻿export const ROUTES = {
-  HOME: '/',
+export const ROUTES = {
+  ROOT: '/',
   SERVICES: '/services',
-  REQUESTS: '/oxygenation_request',
+  ABOUT: '/about',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  REQUESTS: '/requests',
+  REQUEST_DETAILS: '/oxygenation_request/:id',
+  REQUEST_DETAILS_BASE: '/oxygenation_request',
 } as const;
-
-export type RouteKey = keyof typeof ROUTES;
-
-export const ROUTE_LABELS: Record<RouteKey, string> = {
-  HOME: 'Главная',
-  SERVICES: 'Услуги',
-  REQUESTS: 'Заявка',
-};
