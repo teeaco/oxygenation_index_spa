@@ -1,61 +1,41 @@
-﻿# Front RIP SPA — Лабораторная 8
+# Лабораторная 6
 
-React + TypeScript + Vite приложение для расчета индекса оксигенации.
+## Цель работы
 
-## Что реализовано по заданию
+Подключение бэкенда и добавление модели CLIP.
 
-- Redux Toolkit для фильтра услуг (сохраняется при переходе `Список услуг -> Подробнее -> назад`).
-- Адаптивность для 3 страниц:
-  - `Список услуг`
-  - `Подробнее об услуге`
-  - `Список заявок`
-- GitHub Pages деплой (`gh-pages`) с корректным `basename`.
-- PWA (manifest + service worker через `vite-plugin-pwa`).
-- HTTPS для локального запуска (`vite-plugin-mkcert`).
-- Интерфейс модератора: фильтрация заявок по диапазону дат/статусу + short polling.
-- Tauri guest-режим (3 страницы, без авторизации и без редактирования заявок), подключение к backend по LAN IP.
+## Порядок показа
 
-## Ветки для лабы 8
+1. Показать три страницы фронтенда с mock-данными без запущенного сервиса.
+2. Показать страницы фронтенда с бэкендом.
+3. Показать в Network адрес fetch через proxy.
+4. Показать названия и адреса изображений из MinIO.
+5. Внести изменения в БД и показать их во фронтенде.
+6. Объяснить вызовы fetch.
 
-Рекомендуемые 3 ветки:
+## Контрольные вопросы
 
-1. `lab8-pages-pwa`
-2. `lab8-adaptive-redux`
-3. `lab8-tauri-guest`
+- CORS и обратный прокси.
+- BFF и GraphQL.
+- Next.js и SSG.
+- FSD.
 
-## Команды
+## Задание
 
-```bash
-npm install
-npm run dev
-npm run build
-npm run build:pages
-npm run deploy
-npm run tauri:dev
-npm run tauri:build
-```
+Необходимо для трех запросов GET для двух страниц приложения реализовать подключение к бэкенду и мультимодальный поиск через CLIP.
 
-## Конфиги окружений
+Содержимое карточек получать из веб-сервиса. Ajax-запросы написать самостоятельно через fetch. Ограничение с CORS решить через проксирование React. В методах fetch предусмотреть получение данных из коллекции с mock-объектами при отсутствии доступа к бэкенду.
 
-- `.env` — обычный web/dev режим
-- `.env.pages` — сборка под GitHub Pages
-- `.env.tauri` — сборка под Tauri (LAN IP, не localhost)
+Фильтры по теме приложения добавлять в запрос к бэкенду. Должны быть использованы три GET-запроса:
 
-## Где смотреть реализацию
+- список услуг с фильтрацией;
+- одна услуга;
+- иконка корзины без авторизации, но с ответом 200.
 
-- Runtime-переключение target (`web/pages/tauri`): `src/config/runtime.ts`
-- Axios-инстанс: `src/api/http.ts`
-- Авторизация/регистрация через axios: `src/api/authApi.ts`
-- Кодогенерация API-клиента: `scripts/generate-api.mjs`
-- Сгенерированный axios-клиент: `src/api/generated/Api.ts`, `src/api/generated/index.ts`
-- Thunk-логика заявок: `src/store/slices/requestSlice.ts`, `src/store/slices/requestsListSlice.ts`
-- Polling: `src/pages/RequestsPage.tsx`
-- Redux фильтр услуг: `src/store/slices/servicesFiltersSlice.ts`, `src/pages/ServicesPage.tsx`
-- Адаптивные брейкпоинты: `src/index.css`
-- Tauri конфигурация: `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`, `src-tauri/capabilities/default.json`
+На странице списка услуг добавить загрузку изображения для поиска похожих карточек на основе близости эмбеддингов описаний на английском. Краткие описания должны быть строго на английском, длиной 50-100 символов. Для вычисления эмбеддингов использовать `transformers.js`.
 
-## Документация для защиты
+Подобрать порог похожести от 0.4 до 0.9 и максимальное количество результатов `TopK`.
 
-- Порядок показа: `docs/presentation-guide.md`
-- Диаграммы (deployment/state/use-case): `docs/lab8-diagrams.md`
-- Карта скриншотов/доказательств по коду: `docs/lab8-proof-map.md`
+## Методические указания
+
+CLIP.
